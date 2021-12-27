@@ -1,0 +1,1 @@
+API_TOKEN = "f5181f0696274606b7c190927212809" ## https://www.weatherapi.com/my/ ##
