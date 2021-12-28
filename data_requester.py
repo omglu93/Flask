@@ -1,13 +1,15 @@
+from typing import List
+from pandas.io import json
 import requests
-from main_flask import DegreeDataTable, LocationTable
-from secret import API_TOKEN
+#from main_flask import DegreeDataTable, LocationTable
+from api import API_TOKEN
 import pandas as pd
 import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker 
 
 
-class GetWeatherData():
+class GetWeatherDDData():
 
     WEATHER_URL = "http://api.weatherapi.com/v1/history.json?"
 
@@ -36,6 +38,10 @@ class GetWeatherData():
 
     def _get_data(self) -> pd.DataFrame:
 
+        """ Loops over the given dates and location and creates
+        a dataframe from the data.
+        """
+
         date_time = []
         temp = []
 
@@ -63,7 +69,11 @@ class GetWeatherData():
 
         return data_frame
 
-    def _generate_dates_between(self):
+    def _generate_dates_between(self) -> list:
+
+        """ Generates all dates between the two given dates. This
+        is done to have all the dates for the multiple requests.
+        """
 
         days = datetime.datetime.now().date() - self.time_period
         date_list = []
@@ -74,10 +84,14 @@ class GetWeatherData():
         return date_list
 
 
-    def generate_dd(self):
-        
-        df = self._get_data()
+    def generate_dd(self) -> pd.DataFrame:
 
+        """ Generates DD based on the 3 bins of 10.5, 15.5 &
+        18.5.
+        """
+        
+        #df = self._get_data()
+        df = pd.read_excel("./test.xlsx")
         dd_calc = lambda x: (abs(x)+x)/2 
 
         df["CDD_10_5"] = dd_calc(df["temp_c"] - 10.5)
@@ -94,6 +108,9 @@ class GetWeatherData():
 
 
 class UpdateDB():
+
+    """ Updates the DB with the requested data
+    """
 
     def __init__(self, dataframe : pd.DataFrame):
         self.dataframe = dataframe
@@ -121,9 +138,7 @@ class UpdateDB():
 
         #### Location Table ####
 
-        #location = self.dataframe["Location"].unique() #### Create a for loop that itterates over the values as city
-
-        city = "London"
+        city = self.dataframe["Location"].unique()
         
         try:
             so = Session()
@@ -154,9 +169,11 @@ if __name__ == "__main__":
 
     #UpdateDB()._populate_tables()
 
-    # x = GetWeatherData("London", "14-12-2021").generate_dd()
+    # x = GetWeatherDDData("London", "14-12-2021").generate_dd()
     # x.to_excel("./test.xlsx")
 
     dd_data = pd.read_excel("./test.xlsx")
-
-    UpdateDB(dd_data)._populate_tables()
+    # json_data = dd_data.to_json()
+    # print(pd.json_normalize(json_data))
+    print(dd_data.to_json(orient="index"))
+    #UpdateDB(dd_data)._populate_tables()

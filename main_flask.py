@@ -6,6 +6,7 @@ from flask_restful import Api, Resource, reqparse, inputs
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 import re
+from data_requester import GetWeatherDDData
 
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
@@ -71,6 +72,10 @@ input_args.add_argument("end_date", type=datetime, required=True)
 create_user_args = reqparse.RequestParser()
 create_user_args.add_argument("e_mail", type=str)
 create_user_args.add_argument("password", type=str)
+
+request_dd_args = reqparse.RequestParser()
+request_dd_args.add_argument("location", type=str)
+request_dd_args.add_argument("date_one", type=str)
 
 
 #### Token Generator ####
@@ -154,11 +159,34 @@ class UserLogin(Resource):
 
         return {"message" : "Could not verify!"}
 
+class DDRequest(Resource):
+
+    def __init__(self):
+        args = request_dd_args.parse_args()
+        self.location = args["location"]
+        self.date_one = args["date_one"]
+
+    def get(self):
+        """TODO 
+        1. Create a link to the database, so that the get request checks
+        if the data is available in the database before it sends out the request
+        if no the data should be requested and the database updated with it.
+        """
+        data = GetWeatherDDData(location=self.location,
+                                time_period=self.date_one).generate_dd()
+
+        json_file = data.to_json(orient="index")
+
+        return json_file, 201
+        
+
+
 api.add_resource(CreateUser, "/create-user")
 api.add_resource(UserLogin, "/login")
+api.add_resource(DDRequest, "/request-dd")
 
-# if __name__ == "__main__":
-    #app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)
     #db.create_all()
     # admin = UserTable(public_id="admin", e_mail="admin@example.com", password="12345678", admin= 1)
     # location = LocationTable(location = "London")
