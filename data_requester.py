@@ -6,7 +6,7 @@ from api import API_TOKEN
 import pandas as pd
 import datetime
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker 
+from sqlalchemy.orm import sessionmaker
 
 
 class GetWeatherDDData():
@@ -27,7 +27,7 @@ class GetWeatherDDData():
         to be within the valid period (-7 days).
         """
 
-        date = datetime.datetime.strptime(date, "%d-%m-%Y")
+        #date = datetime.datetime.strptime(date, "%d-%m-%Y")
         current_time = datetime.datetime.now()
 
         if (date - current_time) < datetime.timedelta(days=7):

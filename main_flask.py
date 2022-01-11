@@ -1,17 +1,17 @@
 from datetime import datetime, timedelta
-from enum import unique
-from hashlib import sha256
+# from enum import unique
+# from hashlib import sha256
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse, inputs
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql.elements import and_
 from functools import wraps
 import re
 from data_requester import GetWeatherDDData
-
+from database import *
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import uuid
-
+from db import db
 
 app = Flask(__name__)
 
@@ -19,46 +19,47 @@ app.config["SECRET_KEY"] = "somekey"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///degree_data.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
 db.init_app(app)
+# db = SQLAlchemy(app)
+# )
 
-#### Database Classes ####
+# #### Database Classes ####
 
-class LocationTable(db.Model):
+# class LocationTable(db.Model):
 
-    __tablename__ = "location_table"
-    id = db.Column(db.Integer, primary_key=True)
-    location = db.Column(db.String(50), unique=True, nullable=False)
+#     __tablename__ = "location_table"
+#     id = db.Column(db.Integer, primary_key=True)
+#     location = db.Column(db.String(50), unique=True, nullable=False)
 
-    def __repr__(self) -> str:
-        return f"Primary key: {self.id} ---- Location: {self.location}"
+#     def __repr__(self) -> str:
+#         return f"Primary key: {self.id} ---- Location: {self.location}"
 
-class DegreeDataTable(db.Model):
+# class DegreeDataTable(db.Model):
 
-    id = db.Column(db.Integer, primary_key=True)
-    location_id = db.Column(db.Integer, db.ForeignKey("location_table.id"), nullable=False)
-    datetime = db.Column(db.DateTime, nullable=False, unique=False)
-    temp_c = db.Column(db.Float, nullable=False, unique=False)
-    CDD_10_5 = db.Column(db.Float, nullable=False, unique=False)
-    CDD_15_5 = db.Column(db.Float, nullable=False, unique=False)
-    CDD_18_5 = db.Column(db.Float, nullable=False, unique=False)
-    HDD_10_5 = db.Column(db.Float, nullable=False, unique=False)
-    HDD_15_5 = db.Column(db.Float, nullable=False, unique=False)
-    HDD_18_5 = db.Column(db.Float, nullable=False, unique=False)
+#     id = db.Column(db.Integer, primary_key=True)
+#     location_id = db.Column(db.Integer, db.ForeignKey("location_table.id"), nullable=False)
+#     datetime = db.Column(db.DateTime, nullable=False, unique=False)
+#     temp_c = db.Column(db.Float, nullable=False, unique=False)
+#     CDD_10_5 = db.Column(db.Float, nullable=False, unique=False)
+#     CDD_15_5 = db.Column(db.Float, nullable=False, unique=False)
+#     CDD_18_5 = db.Column(db.Float, nullable=False, unique=False)
+#     HDD_10_5 = db.Column(db.Float, nullable=False, unique=False)
+#     HDD_15_5 = db.Column(db.Float, nullable=False, unique=False)
+#     HDD_18_5 = db.Column(db.Float, nullable=False, unique=False)
 
-    def __repr__(self) -> str:
-        return f"Degree key: {self.degree_key} /n base_temperature: {self.temp_c}"
+#     def __repr__(self) -> str:
+#         return f"Degree key: {self.degree_key} /n base_temperature: {self.temp_c}"
 
-class UserTable(db.Model):
+# class UserTable(db.Model):
 
-    user_id = db.Column(db.Integer, primary_key=True)
-    public_id = db.Column(db.String(50), unique=True)
-    e_mail = db.Column(db.String(50))
-    password = db.Column(db.String(80))
-    admin = db.Column(db.Boolean, unique=False)
+#     user_id = db.Column(db.Integer, primary_key=True)
+#     public_id = db.Column(db.String(50), unique=True)
+#     e_mail = db.Column(db.String(50))
+#     password = db.Column(db.String(80))
+#     admin = db.Column(db.Boolean, unique=False)
 
-    def __repr__(self) -> str:
-        return f"e_mail: {self.e_mail} /n admin: {self.admin}"
+#     def __repr__(self) -> str:
+#         return f"e_mail: {self.e_mail} /n admin: {self.admin}"
 
 api = Api(app)
 
@@ -164,7 +165,7 @@ class DDRequest(Resource):
     def __init__(self):
         args = request_dd_args.parse_args()
         self.location = args["location"]
-        self.date_one = args["date_one"]
+        self.date_one = args["date_one"] #datetime.strptime(args["date_one"], "%d-%m-%Y %H:%M")
 
     def get(self):
         """TODO 
@@ -172,18 +173,29 @@ class DDRequest(Resource):
         if the data is available in the database before it sends out the request
         if no the data should be requested and the database updated with it.
         """
-        data = GetWeatherDDData(location=self.location,
-                                time_period=self.date_one).generate_dd()
+        ### Add and for date_two as a range, filter for location
+        sql_query = f"SELECT * FROM degree_data_table WHERE '{self.date_one}' > datetime"
 
-        json_file = data.to_json(orient="index")
+        ### Normal query() type calls have some issues with sqlite and datetime in this version
+        
+        historic_data = db.session.execute(sql_query).fetchall()
+                             
+        #current_user = UserTable.query.filter_by(public_id = data["public_id"]).first()
+        # if bool(historic_data):
+        #     data = historic_data
+        # else:
+            #data = GetWeatherDDData(location=self.location,
+            #                        time_period=self.date_one).generate_dd()
+        print(historic_data)
+        #json_file = historic_data.to_json(orient="index")
 
-        return json_file, 201
+        #return json_file, 201
         
 
 
 api.add_resource(CreateUser, "/create-user")
 api.add_resource(UserLogin, "/login")
-api.add_resource(DDRequest, "/request-dd")
+api.add_resource(DDRequest, "/degree_data")
 
 if __name__ == "__main__":
     app.run(debug=True)

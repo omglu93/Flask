@@ -23,7 +23,7 @@ BASE_URL = "http://127.0.0.1:5000/"
 
 ### DD Usage and getting daata ###
 
-ddr = {"location": "London", "date_one" : "27-12-2021"}
-data = requests.get(BASE_URL + "request-dd", json=ddr)
+ddr = {"location": "London", "date_one" : "11-01-2022 00:00"}
+data = requests.get(BASE_URL + "degree_data", json=ddr)
 pp.pprint(json.loads(data.text))
 
