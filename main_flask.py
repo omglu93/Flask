@@ -20,47 +20,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///degree_data.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
-# db = SQLAlchemy(app)
-# )
-
-# #### Database Classes ####
-
-# class LocationTable(db.Model):
-
-#     __tablename__ = "location_table"
-#     id = db.Column(db.Integer, primary_key=True)
-#     location = db.Column(db.String(50), unique=True, nullable=False)
-
-#     def __repr__(self) -> str:
-#         return f"Primary key: {self.id} ---- Location: {self.location}"
-
-# class DegreeDataTable(db.Model):
-
-#     id = db.Column(db.Integer, primary_key=True)
-#     location_id = db.Column(db.Integer, db.ForeignKey("location_table.id"), nullable=False)
-#     datetime = db.Column(db.DateTime, nullable=False, unique=False)
-#     temp_c = db.Column(db.Float, nullable=False, unique=False)
-#     CDD_10_5 = db.Column(db.Float, nullable=False, unique=False)
-#     CDD_15_5 = db.Column(db.Float, nullable=False, unique=False)
-#     CDD_18_5 = db.Column(db.Float, nullable=False, unique=False)
-#     HDD_10_5 = db.Column(db.Float, nullable=False, unique=False)
-#     HDD_15_5 = db.Column(db.Float, nullable=False, unique=False)
-#     HDD_18_5 = db.Column(db.Float, nullable=False, unique=False)
-
-#     def __repr__(self) -> str:
-#         return f"Degree key: {self.degree_key} /n base_temperature: {self.temp_c}"
-
-# class UserTable(db.Model):
-
-#     user_id = db.Column(db.Integer, primary_key=True)
-#     public_id = db.Column(db.String(50), unique=True)
-#     e_mail = db.Column(db.String(50))
-#     password = db.Column(db.String(80))
-#     admin = db.Column(db.Boolean, unique=False)
-
-#     def __repr__(self) -> str:
-#         return f"e_mail: {self.e_mail} /n admin: {self.admin}"
-
 api = Api(app)
 
 #### JSON Arguments ####
@@ -77,6 +36,7 @@ create_user_args.add_argument("password", type=str)
 request_dd_args = reqparse.RequestParser()
 request_dd_args.add_argument("location", type=str)
 request_dd_args.add_argument("date_one", type=str)
+request_dd_args.add_argument("date_two", type=str)
 
 
 #### Token Generator ####
@@ -166,6 +126,7 @@ class DDRequest(Resource):
         args = request_dd_args.parse_args()
         self.location = args["location"]
         self.date_one = args["date_one"] #datetime.strptime(args["date_one"], "%d-%m-%Y %H:%M")
+        self.date_two = args["date_two"]
 
     def get(self):
         """TODO 
@@ -174,11 +135,18 @@ class DDRequest(Resource):
         if no the data should be requested and the database updated with it.
         """
         ### Add and for date_two as a range, filter for location
-        sql_query = f"SELECT * FROM degree_data_table WHERE '{self.date_one}' > datetime"
+        sql_query = f"SELECT * FROM degree_data_table WHERE '{self.date_one}' > datetime "\
+                    f"AND '{self.date_two}' < datetime AND location_id = "\
+                    f"(SELECT id FROM location_table WHERE location == '{self.location}')" 
 
         ### Normal query() type calls have some issues with sqlite and datetime in this version
         
         historic_data = db.session.execute(sql_query).fetchall()
+
+        if bool(historic_data):
+            print(historic_data)
+        else:
+            print("empty")
                              
         #current_user = UserTable.query.filter_by(public_id = data["public_id"]).first()
         # if bool(historic_data):
