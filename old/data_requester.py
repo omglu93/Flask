@@ -1,7 +1,4 @@
-from typing import List
-from pandas.io import json
 import requests
-#from main_flask import DegreeDataTable, LocationTable
 from api import API_TOKEN
 import pandas as pd
 import datetime
@@ -14,10 +11,11 @@ class GetWeatherDDData():
 
     WEATHER_URL = "http://api.weatherapi.com/v1/history.json?"
 
-    def __init__(self, location : str, time_period : str):
+    def __init__(self, location : str, start_date : datetime, end_date : datetime):
 
         self.location = location
-        self.time_period = self._valid_date(time_period)
+        self.start_date = self._valid_date(start_date)
+        self.end_date = self._valid_date(end_date)
 
     
     def _valid_date(self, date: str) -> str:
@@ -28,7 +26,7 @@ class GetWeatherDDData():
         to be within the valid period (-7 days).
         """
 
-        #date = datetime.datetime.strptime(date, "%d-%m-%Y")
+        #date = datetime.datetime.strptime(date, "%d-%m-%Y") # move this to flask lvl
         current_time = datetime.datetime.now()
 
         if (date - current_time) < datetime.timedelta(days=7):
@@ -46,20 +44,41 @@ class GetWeatherDDData():
         date_time = []
         temp = []
 
-        date_list = self._generate_dates_between()
+        ### If a date range is given ###
+        if self.start_date != self.end_date:
 
-        for date in date_list:
+            date_list = self._generate_dates_between() ##check this
 
-            params = {"q": self.location, "dt": date}
+            for date in date_list:
+
+                params = {"q": self.location, "dt": date}
+                
+                request_url = self.WEATHER_URL + f"key={API_TOKEN}"
+                response = requests.request("GET", request_url, params=params)
+                r = response.json()
             
+                if "error" in r:
+                    print("Error in request")
+                    print(r["error"]["message"])
+                    
+                else:
+                    for i in r["forecast"]["forecastday"][0]["hour"]:
+
+                        date_time.append(i["time"])
+                        temp.append(i["temp_c"])
+
+        ### Single date given ###                
+        else:
+            params = {"q": self.location, "dt": self.start_date}
+                
             request_url = self.WEATHER_URL + f"key={API_TOKEN}"
             response = requests.request("GET", request_url, params=params)
             r = response.json()
-         
+            
             if "error" in r:
                 print("Error in request")
                 print(r["error"]["message"])
-                
+                    
             else:
                 for i in r["forecast"]["forecastday"][0]["hour"]:
 
@@ -76,7 +95,8 @@ class GetWeatherDDData():
         is done to have all the dates for the multiple requests.
         """
 
-        days = datetime.datetime.now().date() - self.time_period
+        #days = datetime.datetime.now().date() - self.time_period
+        days = self.end_date - self.start_date
         date_list = []
         for i in range(days.days + 1):
             date_list.append(self.time_period + datetime.timedelta(i))
@@ -124,7 +144,8 @@ class UpdateDB():
 
     def _populate_tables(self):
         
-        """ TODO Create a check on duplicate DD data 
+        """ Populates the tables with the new data that
+        was requested.
         """
 
         DF_COLUMN_ORDER = [

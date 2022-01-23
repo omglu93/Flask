@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
-from db import db
-#db = SQLAlchemy()
+
+db = SQLAlchemy()
+
 #### Database Classes ####
 
 class LocationTable(db.Model):
