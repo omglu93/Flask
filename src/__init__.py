@@ -1,10 +1,11 @@
 from flask import Flask
+import os
 from src.database import db
 from flask_restful import Api
 from src.user import CreateUser, UserLogin
 from src.dd_range import DDRequestRange
 from src.dd_single import DDRequestSingleDay
-
+from src.config.configuration import *
 def create_app(test_config=None):
 
     app = Flask(__name__,
@@ -12,9 +13,9 @@ def create_app(test_config=None):
 
     if test_config is None:
         app.config.from_mapping(
-            SECRET_KEY="somekey",
-            SQLALCHEMY_DATABASE_URI = "sqlite:///degree_data.db",
-            SQLALCHEMY_TRACK_MODIFICATIONS = False
+            SECRET_KEY=SECRET_KEY,
+            SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI,
+            SQLALCHEMY_TRACK_MODIFICATIONS = SQLALCHEMY_TRACK_MODIFICATIONS
         )
     
     else:

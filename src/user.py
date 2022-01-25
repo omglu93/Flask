@@ -4,6 +4,7 @@ import jwt
 import logging
 from flask_restful import reqparse, Resource
 from werkzeug.security import generate_password_hash,check_password_hash
+from src.config.configuration import SECRET_KEY
 from src.database import UserTable, db
 from flask import request
 from datetime import datetime, timedelta
@@ -12,10 +13,9 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 formater = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-file_handler = logging.FileHandler(r"log\user.log")
+file_handler = logging.FileHandler(r"src\log\user.log")
 file_handler.setLevel(logging.ERROR)
 file_handler.setFormatter(formater)
-
 
 create_user_args = reqparse.RequestParser()
 create_user_args.add_argument("e_mail", type=str)
@@ -34,7 +34,7 @@ class CreateUser(Resource):
     def __init__(self):
         args = create_user_args.parse_args()
         self.e_mail = self._email_validator(args["e_mail"])
-        self.password = generate_password_hash(args["password"], method="pbkdf2:sha256")
+        self.password = generate_password_hash(args["password"], SECRET_KEY)
         self.public_id = str(uuid.uuid4())
         self.admin = False
 
@@ -83,7 +83,6 @@ class UserLogin(Resource):
     def get(self):
 
         username = self.auth.username
-        print(username)
 
         if not self.auth or not self.auth.username or not self.auth.password:
             return {"error" : "Could not verify!"}, 401
@@ -96,8 +95,9 @@ class UserLogin(Resource):
         if check_password_hash(user.password, self.auth.password):
             token = jwt.encode({"public_id" : user.public_id,
                                 "exp" : datetime.utcnow() + timedelta(minutes=90) 
-                                },"secret", algorithm="HS256")
-            return {"token" : token}
+                                },key =SECRET_KEY)                              
+            token = token.decode("utf-8")         
+            return {"token" : token}, 200
 
         return {"error" : "Could not verify!"}, 401
 

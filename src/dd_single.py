@@ -4,13 +4,14 @@ from src.database import db
 from datetime import datetime, timedelta
 import pandas as pd
 from src.services.data_requester import GetWeatherDDData, UpdateDB
+from src.services.token_validator import token_required
 
 
 #### Logger configuration ####
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 formater = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-file_handler = logging.FileHandler(r"log\dd_single.log")
+file_handler = logging.FileHandler(r"src\log\dd_single.log")
 file_handler.setLevel(logging.ERROR)
 file_handler.setFormatter(formater)
 
@@ -35,6 +36,7 @@ class DDRequestSingleDay(Resource):
         self.date = args["date"]      
         self.location = args["location"]
 
+    @token_required
     def get(self):
         
         COLUMN_LIST = ['datetime', 'temp_c',
