@@ -21,24 +21,16 @@ def token_required(function):
         if not token:
             return {"error" : "Token is missing"}, 401
         
-        #try:
-        data = jwt.decode(token, key = SECRET_KEY)
-        # data = data.decode("utf-8")
-        print(data["public_id"])
-
-        # current_user = UserTable.query.filter_by(public_id = data["public_id"]).first()
-        # rows = session.query(Model.name).filter(Model.age >= 20).all()
         try:
+            data = jwt.decode(token, key = SECRET_KEY)
             current_user = UserTable.query.filter(UserTable.public_id == data["public_id"]).first()
-            print(type(current_user))
-            print(current_user.e_mail)
         except:
            return {"message" : "Token is invalid"}, 401
-        return function(*args, **kwargs)
+        return function(current_user.e_mail,*args, **kwargs)
     return decorated
 
 
 if __name__ == "__main__":
-    token =r'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJsaWNfaWQiOiIwYzZmN2E5Ni1hNDVkLTQ0M2UtODBlMy1hOGVjM2EzODkyMjIiLCJleHAiOjE2NDMwNDQwOTN9.W5mtZeaaxH5AyuByde_ulksS1xGtoTcTadUALtp9XUo'
+    token =''
     data = jwt.decode(token, SECRET_KEY)
     print(data)

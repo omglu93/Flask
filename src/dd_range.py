@@ -41,7 +41,7 @@ class DDRequestRange(Resource):
         self.date_two = args["date_two"]
         
     @token_required
-    def get(self):
+    def get(user, self):
         """TODO 
         1. Create a link to the database, so that the get request checks
         if the data is available in the database before it sends out the request

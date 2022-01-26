@@ -6,6 +6,7 @@ from flask_restful import reqparse, Resource
 from werkzeug.security import generate_password_hash,check_password_hash
 from src.config.configuration import SECRET_KEY
 from src.database import UserTable, db
+from src.services.token_validator import token_required
 from flask import request
 from datetime import datetime, timedelta
 
@@ -37,10 +38,6 @@ class CreateUser(Resource):
         self.password = generate_password_hash(args["password"], SECRET_KEY)
         self.public_id = str(uuid.uuid4())
         self.admin = False
-
-    def get(self):
-        print(self.e_mail)
-        return {"user" : self.e_mail}, 201
 
     def post(self):
 
@@ -100,5 +97,27 @@ class UserLogin(Resource):
             return {"token" : token}, 200
 
         return {"error" : "Could not verify!"}, 401
+
+class UserDetails(Resource):
+
+    def __init__(self, user):
+        self.user = user
+
+    @token_required
+    def get(self):
+        
+        """ Returns some basic data about the user
+        """
+        try:
+            user_data = UserTable.query.filter_by(e_mail=self.user).first()
+            if not user_data:
+                return {"error" : "Could not find user!"}, 401
+        except:
+            return {"error" : "Could not find user!"}, 401
+
+        return {"message" : "New user created!",
+                "user": self.user,
+                "admin": user_data.admin
+            }, 200
 
 
