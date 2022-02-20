@@ -4,6 +4,8 @@ from src.database import db
 from datetime import datetime, timedelta
 import pandas as pd
 from src.services.data_requester import GetWeatherDDData, UpdateDB
+from src.services.token_validator import token_required
+
 
 #### Logger configuration ####
 logger = logging.getLogger(__name__)
@@ -39,8 +41,9 @@ class DDRequestRange(Resource):
         self.location = args["location"]
         self.date_one = args["date_one"]
         self.date_two = args["date_two"]
-
-    def get(self):
+        
+    @token_required
+    def get(user, self):
         """TODO 
         1. Create a link to the database, so that the get request 
         checks if the data is available in the database before it
