@@ -1,11 +1,9 @@
-from flask_restful import Api
 import requests
-#from api import API_TOKEN
 import pandas as pd
 import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from api import API_TOKEN
+#from api import API_TOKEN
 from src.database import LocationTable
 
 API_TOKEN = ""

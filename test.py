@@ -30,9 +30,15 @@ BASE_URL = "http://127.0.0.1:5000/"
 
 ### DD single day ###
 
-ddr = {"location": "London", "date" : "2021-12-19"}
-data = requests.get(BASE_URL + "single_degree_data", json=ddr)
-#print(data.json())
-json_data = data.json()
-print(json_data['json_data'])
+# ddr = {"location": "London", "date" : "2021-12-19"}
+# data = requests.get(BASE_URL + "single_degree_data", json=ddr)
+# #print(data.json())
+# json_data = data.json()
+# print(json_data['json_data'])
 
+ddr = {"period": {1 : "2021-12-19", 2: "2021-12-20", 3 : "2021-12-21"},
+       "consumption" : {1: 5000, 2: 6000, 3:7000}}
+data = requests.get(BASE_URL + "/dd-corr", json=ddr)
+print(data)
+#json_data = data.json()
+#print(json_data['json_data'])

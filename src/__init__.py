@@ -4,6 +4,7 @@ from flask_restful import Api
 from src.user import CreateUser, UserLogin
 from src.dd_range import DDRequestRange
 from src.dd_single import DDRequestSingleDay
+from src.corr_stat import DDCorelationAnalysis
 
 def create_app(test_config=None):
 
@@ -28,6 +29,6 @@ def create_app(test_config=None):
     api.add_resource(UserLogin, "/login")
     api.add_resource(DDRequestRange, "/degree_data")
     api.add_resource(DDRequestSingleDay, "/single_degree_data")
-
+    api.add_resource(DDCorelationAnalysis, "/dd-corr")
     
     return app

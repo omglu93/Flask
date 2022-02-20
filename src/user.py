@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 formater = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-file_handler = logging.FileHandler(r"log\user.log")
+file_handler = logging.FileHandler(r"src\log\user.log")
 file_handler.setLevel(logging.ERROR)
 file_handler.setFormatter(formater)
 

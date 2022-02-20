@@ -10,7 +10,7 @@ from src.services.data_requester import GetWeatherDDData, UpdateDB
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 formater = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-file_handler = logging.FileHandler(r"log\dd_single.log")
+file_handler = logging.FileHandler(r"src\log\dd_single.log")
 file_handler.setLevel(logging.ERROR)
 file_handler.setFormatter(formater)
 
