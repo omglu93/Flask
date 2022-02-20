@@ -1,9 +1,11 @@
 from flask import Flask
 from src.database import db
 from flask_restful import Api
-from src.user import CreateUser, UserLogin
+from src.user import CreateUser, UserLogin, UserDetails
 from src.dd_range import DDRequestRange
 from src.dd_single import DDRequestSingleDay
+from src.config.configuration import *
+
 
 def create_app(test_config=None):
 
@@ -12,9 +14,9 @@ def create_app(test_config=None):
 
     if test_config is None:
         app.config.from_mapping(
-            SECRET_KEY="somekey",
-            SQLALCHEMY_DATABASE_URI = "sqlite:///degree_data.db",
-            SQLALCHEMY_TRACK_MODIFICATIONS = False
+            SECRET_KEY=SECRET_KEY,
+            SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI,
+            SQLALCHEMY_TRACK_MODIFICATIONS = SQLALCHEMY_TRACK_MODIFICATIONS
         )
     
     else:
@@ -24,10 +26,13 @@ def create_app(test_config=None):
     db.init_app(app)
     api = Api(app)
 
-    api.add_resource(CreateUser, "/create-user")
-    api.add_resource(UserLogin, "/login")
-    api.add_resource(DDRequestRange, "/degree_data")
-    api.add_resource(DDRequestSingleDay, "/single_degree_data")
+    endpoint_prefix = "/api/v1"
+
+    api.add_resource(CreateUser, endpoint_prefix + "/create-user")
+    api.add_resource(UserLogin, endpoint_prefix + "/login")
+    api.add_resource(UserDetails, endpoint_prefix + "/user-details")
+    api.add_resource(DDRequestRange, endpoint_prefix + "/range-degree-data")
+    api.add_resource(DDRequestSingleDay, endpoint_prefix + "/single-degree-data")
 
     
     return app

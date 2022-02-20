@@ -4,13 +4,14 @@ from src.database import db
 from datetime import datetime, timedelta
 import pandas as pd
 from src.services.data_requester import GetWeatherDDData, UpdateDB
+from src.services.token_validator import token_required
 
 
 #### Logger configuration ####
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 formater = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-file_handler = logging.FileHandler(r"log\dd_single.log")
+file_handler = logging.FileHandler(r"src\log\dd_single.log")
 file_handler.setLevel(logging.ERROR)
 file_handler.setFormatter(formater)
 
@@ -37,12 +38,12 @@ class DDRequestSingleDay(Resource):
         self.date = args["date"]      
         self.location = args["location"]
 
-    def get(self):
+    @token_required
+    def get(user,self):
         
         COLUMN_LIST = ['datetime', 'temp_c',
                        'CDD_10_5', 'CDD_15_5', 'CDD_18_5',
                        'HDD_10_5', 'HDD_15_5', 'HDD_18_5']
-
 
         try:
             date = datetime.strptime(self.date, "%Y-%m-%d")
@@ -58,7 +59,7 @@ class DDRequestSingleDay(Resource):
             sql_query = f"SELECT * FROM degree_data_table WHERE '{date.date()}' < datetime "\
                         f"AND '{end_day.date()}' > datetime AND location_id == "\
                         f"(SELECT id FROM location_table WHERE location == '{self.location}')"
-            print(sql_query)
+                        
             db_data = db.session.execute(sql_query).fetchall()
 
             dd_data = pd.DataFrame(db_data,
