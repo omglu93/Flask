@@ -4,12 +4,7 @@ from flask_restful import Api
 from src.user import CreateUser, UserLogin, UserDetails
 from src.dd_range import DDRequestRange
 from src.dd_single import DDRequestSingleDay
-<<<<<<< HEAD
 from src.corr_stat import DDCorelationAnalysis
-=======
-from src.config.configuration import *
-
->>>>>>> d289e6478a6d768de994959373d7994f5b9304c0
 
 def create_app(test_config=None):
 
