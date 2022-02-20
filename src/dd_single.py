@@ -21,9 +21,11 @@ request_dd_single.add_argument("date", type=str, required=True)
 
 class DDRequestSingleDay(Resource):
 
-    """ Class returns degree data for a selected date  & location. It first looks into the
-    database for the required data. If the data isnt available, it requests it by a API function,
-    returns it and updates the database. The limitation of the API call is -7 days.
+    """ Class returns degree data for a selected date  & location.
+    It first looks into the database for the required data. If the
+    data isnt available, it requests it by a API function, returns
+    it and updates the database. The limitation of the API call is
+    -7 days.
     --- GET ---
     Inputs:
     1.Location 
@@ -45,8 +47,11 @@ class DDRequestSingleDay(Resource):
         try:
             date = datetime.strptime(self.date, "%Y-%m-%d")
         except ValueError:
+            msg = ("Date needs to have the"
+                   "following format yyyy-mm-dd")
+            
             logging.error("Dates have the wrong format")
-            return {"error" : "Date needs to have the following format yyyy-mm-dd"}
+            return {"error" : msg}
 
         try: 
             end_day = date + timedelta(days=1)
@@ -56,17 +61,29 @@ class DDRequestSingleDay(Resource):
             print(sql_query)
             db_data = db.session.execute(sql_query).fetchall()
 
-            dd_data = pd.DataFrame(db_data, columns = ['index', 'location_id', 'datetime', 'temp_c',
-                                                        'CDD_10_5', 'CDD_15_5', 'CDD_18_5',
-                                                        'HDD_10_5', 'HDD_15_5', 'HDD_18_5'])
+            dd_data = pd.DataFrame(db_data,
+                                   columns = ['index',
+                                              'location_id',
+                                              'datetime',
+                                              'temp_c',
+                                              'CDD_10_5',
+                                              'CDD_15_5',
+                                              'CDD_18_5',
+                                              'HDD_10_5',
+                                              'HDD_15_5',
+                                              'HDD_18_5'])
             return_data = dd_data[COLUMN_LIST]
         
         except:
-                ### If the data is not in the database, request it via API and calculate the DD
-                ### free version of the API is limited to last 7 days
+                # If the data is not in the database,
+                # request it via API and calculate the DD
+                # free version of the API is limited to
+                # last 7 days
                 current_time = datetime.now()
                 if (date - current_time) < timedelta(days=7):
-                    api_data = GetWeatherDDData(self.location, date, date).generate_dd()
+                    api_data = GetWeatherDDData(self.location,
+                                                date, date
+                                                ).generate_dd()
 
                     if bool(api_data):
                         return_data = api_data[COLUMN_LIST]

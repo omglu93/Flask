@@ -24,17 +24,21 @@ create_user_args.add_argument("password", type=str)
 
 class CreateUser(Resource):
 
-    """ This class is used for user generation and checking. There are simple validation procedures
-    for e-mails using regex. The password is hashed with pbkdf2:sha256 method and a public id is
-    generated.
+    """ This class is used for user generation and checking. 
+    There are simple validation procedures for e-mails using
+    regex. The password is hashed with pbkdf2:sha256 method 
+    and a public id is generated.
     """
 
-    REGEX_E_MAIL_VALIDATION = re.compile(r"([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+")
+    REGEX_E_MAIL_VALIDATION = re.compile(r"([A-Za-z0-9]+[.-_])" \
+                                         r"*[A-Za-z0-9]+@[A-Za-" \
+                                         r"z0-9-]+(\.[A-Z|a-z]{2,})+")
 
     def __init__(self):
         args = create_user_args.parse_args()
         self.e_mail = self._email_validator(args["e_mail"])
-        self.password = generate_password_hash(args["password"], method="pbkdf2:sha256")
+        self.password = generate_password_hash(args["password"],
+                                               method="pbkdf2:sha256")
         self.public_id = str(uuid.uuid4())
         self.admin = False
 
@@ -73,7 +77,8 @@ class CreateUser(Resource):
 
 class UserLogin(Resource):
 
-    """ User login function that checks the password and e-mail before returning a token. The
+    """ User login function that checks the password 
+    and e-mail before returning a token. The
     token lasts for 90 minutes before it expires.
     """
     
