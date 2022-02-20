@@ -24,9 +24,11 @@ request_dd_args.add_argument("date_two", type=str, required=True)
 
 class DDRequestRange(Resource):
 
-    """ Class returns degree data for a selected date range & location. It first looks into the
-    database for the required data. If the data isnt available, it requests it by a API function,
-    returns it and updates the database. The limitation of the API call is -7 days.
+    """ Class returns degree data for a selected date range & 
+    location. It first looks into the database for the required
+    data. If the data isnt available, it requests it by a API
+    function, returns it and updates the database. The limitation
+    of the API call is -7 days.
     --- GET ---
     Inputs:
     1.Location 
@@ -43,10 +45,12 @@ class DDRequestRange(Resource):
     @token_required
     def get(user, self):
         """TODO 
-        1. Create a link to the database, so that the get request checks
-        if the data is available in the database before it sends out the request
-        if no the data should be requested and the database updated with it.
-        2. Create validation on the date_one and date_two, so that its within 7 days
+        1. Create a link to the database, so that the get request 
+        checks if the data is available in the database before it
+        sends out the request if no the data should be requested
+        and the database updated with it.
+        2. Create validation on the date_one and date_two, so that
+        its within 7 days
         """
         ##### Date validation #####
 
@@ -54,8 +58,11 @@ class DDRequestRange(Resource):
             date_one = datetime.strptime(self.date_one, "%Y-%m-%d")
             date_two = datetime.strptime(self.date_two, "%Y-%m-%d")
         except ValueError:
+            msg = ("Date needs to have the" 
+                   "following format yyyy-mm-dd")
+            
             logging.error("Dates have the wrong format")
-            return {"error" : "Date needs to have the following format yyyy-mm-dd"}
+            return {"error" : msg}
 
 
         COLUMN_LIST = ['datetime', 'temp_c',
@@ -78,17 +85,30 @@ class DDRequestRange(Resource):
 
                 db_data = db.session.execute(sql_query).fetchall()
 
-                dd_data = pd.DataFrame(db_data, columns = ['index', 'location_id', 'datetime', 'temp_c',
-                                                           'CDD_10_5', 'CDD_15_5', 'CDD_18_5',
-                                                           'HDD_10_5', 'HDD_15_5', 'HDD_18_5'])
+                dd_data = pd.DataFrame(db_data,
+                                       columns = ['index',
+                                                  'location_id',
+                                                  'datetime',
+                                                  'temp_c',
+                                                  'CDD_10_5',
+                                                  'CDD_15_5',
+                                                  'CDD_18_5',
+                                                  'HDD_10_5',
+                                                  'HDD_15_5',
+                                                  'HDD_18_5'])
                 dd_data = dd_data[COLUMN_LIST]
                 return_data = return_data.append(dd_data)
             except:
-                ### If the data is not in the database, request it via API and calculate the DD
-                ### free version of the API is limited to last 7 days
+                # If the data is not in the database,
+                # request it via API and calculate the DD
+                # free version of the API is limited to
+                # last 7 days
                 current_time = datetime.now()
                 if (start_day - current_time) < timedelta(days=7):
-                    api_data = GetWeatherDDData(self.location, start_day, start_day).generate_dd()
+                    api_data = GetWeatherDDData(self.location,
+                                                start_day,
+                                                start_day
+                                                ).generate_dd()
 
                     if bool(api_data):
                         return_data = return_data.append(api_data)
