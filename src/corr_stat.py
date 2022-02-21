@@ -41,8 +41,17 @@ class DDCorelationAnalysis(Resource):
     
     def get(self):
         
-        df = pd.DataFrame(columns=["period", "consumption"])
+        #df = pd.DataFrame(columns=["period", "consumption"])
         
+        print(self.periods)
+        print(type(self.periods))        
+        # period = dict(self.periods)
+        # consumption = dict(self.consumption)
+        # for date, consumption in zip(period, consumption):
+            
+        #     print(date)
+        #     print(consumption)
+        #df = pd.DataFrame.from_dict(self.periods) 
         #### TODO Parase with zip both period and consumption in the dataframe
         
         return {"ok" : "Well this went well"}

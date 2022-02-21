@@ -5,8 +5,8 @@ import pprint
 import json
 
 pp = pprint.PrettyPrinter(indent=4)
-endpoint_prefix = "api/v1/"
-BASE_URL = "http://127.0.0.1:5000/" + endpoint_prefix
+endpoint_prefix = "api/v1"
+BASE_URL = "http://127.0.0.1:5000/"# + endpoint_prefix
 
 #### Create User -- POST ####
 # create_user = {"e_mail": "omar@test.com", "password" : "omarjenajjaci"}
@@ -17,10 +17,10 @@ BASE_URL = "http://127.0.0.1:5000/" + endpoint_prefix
 
 #### Login User & Get Token ####
 
-data = requests.get(BASE_URL + "login", auth=HTTPBasicAuth("omar@omar.com", "omarjenajjaci"))
-json_data = data.json()
-token = json_data['token']
-print(token)
+# data = requests.get(BASE_URL + "login", auth=HTTPBasicAuth("omar@omar.com", "omarjenajjaci"))
+# json_data = data.json()
+# token = json_data['token']
+# print(token)
 
 
 ### DD Usage and getting daata ###
@@ -32,20 +32,12 @@ print(token)
 
 ### DD single day ###
 
-<<<<<<< HEAD
 # ddr = {"location": "London", "date" : "2021-12-19"}
 # data = requests.get(BASE_URL + "single_degree_data", json=ddr)
 # #print(data.json())
 # json_data = data.json()
 # print(json_data['json_data'])
-=======
-ddr = {"location": "London", "date" : "2021-12-19"}
-data = requests.get(BASE_URL + "single-degree-data", json=ddr, headers={"x-acess-token" : token})
-#print(data.json())
-json_data = data.json()
-print(json_data['json_data'])
->>>>>>> d289e6478a6d768de994959373d7994f5b9304c0
-
+print(BASE_URL + "/dd-corr")
 ddr = {"period": {1 : "2021-12-19", 2: "2021-12-20", 3 : "2021-12-21"},
        "consumption" : {1: 5000, 2: 6000, 3:7000}}
 data = requests.get(BASE_URL + "/dd-corr", json=ddr)

@@ -5,6 +5,7 @@ from src.user import CreateUser, UserLogin, UserDetails
 from src.dd_range import DDRequestRange
 from src.dd_single import DDRequestSingleDay
 from src.corr_stat import DDCorelationAnalysis
+from src.config.configuration import *
 
 def create_app(test_config=None):
 
@@ -25,21 +26,10 @@ def create_app(test_config=None):
     db.init_app(app)
     api = Api(app)
 
-<<<<<<< HEAD
     api.add_resource(CreateUser, "/create-user")
     api.add_resource(UserLogin, "/login")
     api.add_resource(DDRequestRange, "/degree_data")
     api.add_resource(DDRequestSingleDay, "/single_degree_data")
     api.add_resource(DDCorelationAnalysis, "/dd-corr")
-=======
-    endpoint_prefix = "/api/v1"
-
-    api.add_resource(CreateUser, endpoint_prefix + "/create-user")
-    api.add_resource(UserLogin, endpoint_prefix + "/login")
-    api.add_resource(UserDetails, endpoint_prefix + "/user-details")
-    api.add_resource(DDRequestRange, endpoint_prefix + "/range-degree-data")
-    api.add_resource(DDRequestSingleDay, endpoint_prefix + "/single-degree-data")
-
->>>>>>> d289e6478a6d768de994959373d7994f5b9304c0
     
     return app
