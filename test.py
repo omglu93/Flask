@@ -37,9 +37,17 @@ BASE_URL = "http://127.0.0.1:5000/"# + endpoint_prefix
 # #print(data.json())
 # json_data = data.json()
 # print(json_data['json_data'])
-print(BASE_URL + "/dd-corr")
-ddr = {"period": {1 : "2021-12-19", 2: "2021-12-20", 3 : "2021-12-21"},
-       "consumption" : {1: 5000, 2: 6000, 3:7000}}
+print(BASE_URL + "dd-corr")
+# ddr = {"period": {"1" : "2021-12-19", "2": "2021-12-20", "3" : "2021-12-21"},
+#        "consumption" : {"1": "5000", "2": "6000", "3":"7000"}}
+# ddr = {"payload" : json.dumps(ddr)}
+
+period = {"1" : "2021-12-19", "2": "2021-12-20", "3" : "2021-12-21"}
+consumption = {"1": "5000", "2": "6000", "3":"7000"}
+# ddr = {"period" : json.dumps(period), "consumption" : json.dumps(consumption)}
+ddr = {"period" : period, "consumption" : consumption, "location" : "London"}
+
+
 data = requests.get(BASE_URL + "/dd-corr", json=ddr)
 print(data)
 #json_data = data.json()
