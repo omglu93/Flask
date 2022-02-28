@@ -29,36 +29,50 @@ class DDCorelationAnalysis(Resource):
         
         args = corr_analysis_parms.parse_args()
         self.args = dict(args)
-        print(self.args)
-        self.consumption = self._custom_type_validator(self.args["consumption"])
-        self.period = self._custom_type_validator(self.args["period"])
+        self.consumption = self.args["consumption"]
+        self.period = self.args["period"]
         self.location = self.args["location"]
         
-    def _custom_type_validator(self, input_parameter):
+    def _date_validator(self, input_date):
         
-        if isinstance(input_parameter, (dict, str)):
-            return input_parameter
-        else:
-            msg = ("Wrong data type - the inputs"
-                   " have to be in a json format")
-            return {"msg": msg}
-    
-    
+        sql_query = f"SELECT datetime FROM degree_data_table "\
+                    f"WHERE datetime = '{input_date}'"
+        return db.session.execute(sql_query).fetchall()
+      
     def get(self):
+        
+
+        # Conversion to dic and pd.DataFrame
         
         self.consumption = ast.literal_eval(self.consumption)
         self.period = ast.literal_eval(self.period)
         
+        # Validation of the input size
+        print(len(self.period))
+        print(len(self.consumption))
+        if len(self.consumption) != len(self.period):
+            return {"error": "Input parameters have different sizes"}, 400
+        
+        
+        
         df = pd.DataFrame.from_dict({"consumption" : self.consumption,
                                      "period" : self.period})
         
+        # Validation of input dates
+        for period in df["period"]:
+            
+            if self._date_validator(period) is None:
+                return {"error" : "Date requested is out of range of DB"}, 400
+            
         start_day = min(df["period"])
         end_day = max(df["period"])
         
         df["period"] = pd.to_datetime(df["period"])
-        print(df)
+        
+        
         df = df.set_index("period")
-                                    
+        
+                                     
       
         COLUMNS_DATA = ['datetime',
                         'CDD_10_5',
@@ -73,7 +87,7 @@ class DDCorelationAnalysis(Resource):
             sql_query = f"SELECT datetime, CDD_10_5, CDD_15_5, CDD_18_5,"\
                         f"HDD_10_5, HDD_15_5, HDD_18_5 " \
                         f"FROM degree_data_table WHERE '{start_day}' < datetime "\
-                        f"AND '{end_day}' > datetime AND location_id == "\
+                        f"AND '{end_day}' >= datetime AND location_id == "\
                         f"(SELECT id FROM location_table WHERE location == '{self.location}')"
 
             db_data = db.session.execute(sql_query).fetchall()
@@ -81,7 +95,7 @@ class DDCorelationAnalysis(Resource):
             dd_data = pd.DataFrame(db_data,
                                    columns = COLUMNS_DATA)
         except:
-            print("Nope")
+            return {"error" : "Data retrival failed"}, 400
             
                
         dd_data["datetime"] = pd.to_datetime(dd_data["datetime"])
@@ -93,15 +107,18 @@ class DDCorelationAnalysis(Resource):
         final_df = df.join(daily_dd_data, how="right")
         print(final_df)
         
-        # for i in final_df.columns:
-        #     correlations = {}
-        #     if i != "consumption":
-        #         print(i)
-        #         correlation = final_df["consumption"].corr(final_df[i])
-        #         correlations[i:correlation]
-        # print(correlations)
         final_df["consumption"] = pd.to_numeric(final_df["consumption"])
-        x = final_df["consumption"].corr(final_df["HDD_15_5"], method="pearson")
-        print(x)
+        
+        max_correlation = 0
+        max_dd = ""
+        for dd in final_df.columns[1:]:
+            x = final_df["consumption"].corr(final_df[dd], method="pearson")
+            r_sq = x**2
+            
+            if r_sq > max_correlation:
+                max_correlation = r_sq
+                max_dd = dd
+                
+        print(max_correlation, max_dd)
         # Create a R2 calculation and generate and return the best degree data with the R2
         return {"ok" : "Well this went well"}
